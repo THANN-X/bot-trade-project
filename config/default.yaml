@@ -1,0 +1,48 @@
+# ตัวเลขทุกตัวของระบบอยู่ที่นี่ — แก้ที่นี่ ไม่แก้ในโค้ด
+# ค่าที่เป็น null = ยังไม่ได้เลือก ต้องเลือกจาก backtest (ฉาก 3) ก่อนใช้งานจริง
+
+market:
+  exchange: binance
+  symbol: BTC/USDT
+  timeframe: 1h
+  history_days: 730          # 2 ปี
+
+costs:                       # ดู docs/backtesting.md หัวข้อ 2
+  fee_pct: 0.001             # 0.1% ต่อข้าง — ใกล้ค่าจริงของ spot ส่วนใหญ่
+  slippage_pct: 0.0005       # 0.05% ต่อข้าง — สมมติฐานระมัดระวัง วัดจริงในฉาก 5 แล้วปรับ
+
+# แบ่งข้อมูลตามเวลา เก่า → ใหม่ (รวมกันต้องได้ 1.0) — ดู docs/backtesting.md หัวข้อ 3
+splits:
+  tune: 0.6
+  test: 0.2
+  holdout: 0.2               # แตะได้ครั้งเดียวตอนเลือกกลยุทธ์เสร็จ
+
+strategy:
+  name: sma_cross
+  params:
+    fast: 20
+    slow: 50
+
+risk:
+  risk_per_trade_pct: 0.01   # 1% ของพอร์ตต่อไม้ (เพดาน 2%)
+  initial_capital: 10000
+
+# ดู docs/decisions/0001-kill-switch-from-backtest.md
+kill_switch:
+  # กลุ่ม A — กันกลยุทธ์แย่ (ตั้งจาก backtest ช่วงจูน)
+  daily_loss:
+    limit_pct: null          # ผูกกับ risk_per_trade + วันที่แย่ที่สุดใน backtest
+    day_reset_utc: "00:00"
+    action: pause_until_next_day
+  losing_streak:
+    limit: null              # ไม้แพ้ติดกันมากสุดใน backtest × ~1.5
+    action: halt_until_review
+  max_drawdown:
+    limit_pct: 0.15
+    action: halt_until_rebacktest
+
+  # กลุ่ม B — กันบอทพัง (ใช้ตอน paper/live เท่านั้น) ชนแล้วหยุดทันที
+  safety:
+    stale_data_seconds: 60
+    max_orders_per_minute: null
+    max_position_pct: null

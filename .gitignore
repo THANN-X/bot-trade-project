@@ -1,0 +1,33 @@
+# ความลับ — ห้ามเข้า git เด็ดขาด
+.env
+.env.*
+!.env.example
+
+# ข้อมูล (ดึงใหม่ได้ด้วย scripts/fetch_data.py)
+data/**
+!data/**/
+!data/**/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+.ipynb_checkpoints/
+
+# ผลลัพธ์ที่สร้างซ้ำได้ (กราฟ, รายงาน, log)
+reports/
+*.log
+
+# Claude — ค่าตั้งส่วนตัวของเครื่องนี้ (CLAUDE.md กับ docs/ ต้องเข้า git)
+.claude/settings.local.json
+CLAUDE.local.md
+
+# Editor / OS
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
+.DS_Store
