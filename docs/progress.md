@@ -8,10 +8,11 @@ Claude อ่านไฟล์นี้ตอนเริ่ม session แล�
 
 ## ฉาก 0: ปูพื้น
 - [x] วางโครงสร้างโปรเจกต์ + เอกสาร (2026-09-25)
+- [x] ทบทวนโครงผ่าน + เพิ่มกฎ stop loss กรณี gap และสรุปกฎ backtest ใน CLAUDE.md (2026-09-25)
 - [ ] ติดตั้ง uv และรัน `uv sync` ได้
 - [ ] เข้าใจ OHLCV, ค่าธรรมเนียม, market/limit order (จด `docs/glossary.md`)
 - [ ] ลอง pandas เบื้องต้นใน `notebooks/`
-- [ ] commit แรก (journal ต้องใช้ git hash)
+- [x] commit แรก `1cd04cf` (2026-09-25)
 
 ## ฉาก 1: ดึงข้อมูล
 - [ ] `config.load_config`
@@ -24,7 +25,7 @@ Claude อ่านไฟล์นี้ตอนเริ่ม session แล�
 - [ ] `strategies/sma_cross.py`
 - [ ] `tests/test_lookahead.py` ผ่าน (และลองทำให้ fail ด้วย `.shift(-1)` ดูหนึ่งครั้ง)
 - [ ] `backtest/costs.py`, `risk/sizing.py`
-- [ ] `backtest/engine.py`
+- [ ] `backtest/engine.py` — รวมกฎ stop loss กรณี open กระโดดข้าม stop และกฎรอยต่อช่วง
 - [ ] `backtest/metrics.py` + `tests/test_metrics.py`
 - [ ] `backtest/journal.py` — เขียน `docs/journal.jsonl` อัตโนมัติ
 - [ ] `scripts/run_backtest.py --split tune` รันจบ + มีบรรทัดใน journal
