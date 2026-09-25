@@ -48,5 +48,6 @@ Claude อ่านไฟล์นี้ตอนเริ่ม session แล�
 - [ ] กำหนดขนาดหน้าต่างขั้นต่ำของแต่ละกลยุทธ์ (warm-up)
 - [ ] test ตัดข้อมูลส่วนหัว: หลังพ้น warm-up สัญญาณต้องตรงกับข้อมูลเต็ม
 - [ ] adapter ชุด live: `ExchangeData` (WebSocket) + `ExchangeBroker` (ccxt testnet)
+- [ ] วัด slippage จริง แยกไม้ปกติกับไม้ที่ออกด้วย stop (โดยเฉพาะช่วงข่าวแรง) แล้วปรับ `costs.slippage_pct`
 - [ ] เปิดกฎกันบอทพัง (ราคาค้าง, สั่งถี่, สถานะใหญ่เกิน)
 - [ ] paper trade 1–3 เดือน
