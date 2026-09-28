@@ -4,17 +4,32 @@
 เรียงจากเก่าไปใหม่ ไม่มีแถวซ้ำ
 """
 
+
+import ccxt
 import pandas as pd
 
+COLUMNS = ["timestamp", "open", "high", "low", "close", "volume"]
 
 def fetch_ohlcv(exchange: str, symbol: str, timeframe: str, days: int) -> pd.DataFrame:
     """ดึงข้อมูลย้อนหลัง `days` วัน
-
-    TODO(ฉาก 1):
-    - exchange ส่งข้อมูลได้ครั้งละจำกัด (เช่น 1000 แท่ง) ต้องวนดึงเป็นหน้า ๆ
-    - แปลง timestamp (milliseconds) เป็น datetime UTC
-    - ตัดแถวซ้ำตรงรอยต่อระหว่างหน้า
-    - timestamp ของ ccxt = เวลา "เปิด" แท่ง → แท่งสุดท้ายมักยังไม่ปิด ต้องตัดทิ้ง
-      (ดู docs/backtesting.md หัวข้อ 1 — จะรู้ได้ยังไงว่าแท่งไหนปิดแล้ว?)
     """
-    raise NotImplementedError
+    ex = getattr(ccxt, exchange)()
+    day_ms = 24 * 60 * 60 * 1000
+    now = ex.milliseconds()
+    bar_ms = ex.parse_timeframe(timeframe) * 1000
+    since = now - days * day_ms
+    rows = []
+
+    while since < now:
+        page = ex.fetch_ohlcv(symbol, timeframe, since=since, limit=1000)
+        if not page:
+            break
+        rows.extend(page)
+        since = page[-1][0] + bar_ms
+
+    df = pd.DataFrame(rows, columns=COLUMNS)
+    df = df.drop_duplicates(subset="timestamp")
+    df = df[df["timestamp"] + bar_ms <= now]
+    df["timestamp"] = pd.to_datetime(df["timestamp"], unit="ms", utc=True)
+
+    return df.set_index("timestamp").sort_index()
