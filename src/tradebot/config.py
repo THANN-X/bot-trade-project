@@ -6,16 +6,17 @@
 
 from pathlib import Path
 
+import yaml
+
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_CONFIG = PROJECT_ROOT / "config" / "default.yaml"
 
-
 def load_config(path: Path = DEFAULT_CONFIG) -> dict:
     """อ่าน yaml แล้วคืนเป็น dict
-
-    TODO(ฉาก 1): ใช้ yaml.safe_load อ่านไฟล์
     """
-    raise NotImplementedError
+    with open(path, "r", encoding="utf-8") as file:
+        config = yaml.safe_load(file)
+    return config
 
 
 def load_secrets() -> dict:
