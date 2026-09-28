@@ -10,6 +10,7 @@ market:
 costs:                       # ดู docs/backtesting.md หัวข้อ 2
   fee_pct: 0.001             # 0.1% ต่อข้าง — ใกล้ค่าจริงของ spot ส่วนใหญ่
   slippage_pct: 0.0005       # 0.05% ต่อข้าง — สมมติฐานระมัดระวัง วัดจริงในฉาก 5 แล้วปรับ
+  stress_slippage_pct: 0.002 # 0.2% ต่อข้าง — รอบ stress test ฉาก 3 (backtesting.md §2)
 
 # แบ่งข้อมูลตามเวลา เก่า → ใหม่ (รวมกันต้องได้ 1.0) — ดู docs/backtesting.md หัวข้อ 3
 splits:

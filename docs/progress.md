@@ -22,6 +22,10 @@ Claude อ่านไฟล์นี้ตอนเริ่ม session แล�
 - [ ] `data/storage.py` — เก็บ/อ่าน CSV
 - [ ] `viz/plot.py` — กราฟราคา
 - [ ] `scripts/fetch_data.py` รันจบได้
+- [ ] ตรวจข้อมูล 2 ปี (200 แท่งของฉาก 0 ≈ 8 วัน น้อยเกินจะเห็นเหตุการณ์ใหญ่):
+  - แท่งหาย: เวลาระหว่างแถวติดกันต้องห่าง 1 ชม. พอดี (ช่วง exchange ปิดปรับปรุงอาจไม่มีแท่งเลย)
+  - gap ใหญ่สุด (open − close ก่อนหน้า) และ range เฉลี่ย เทียบกับผลฉาก 0
+  - ถ้าเจอ ให้ตัดสินใจว่าจะจัดการยังไง แล้วจดลง backtesting.md
 
 ## ฉาก 2: backtest เอง (SMA 20/50)
 - [ ] `strategies/sma_cross.py`
@@ -35,6 +39,7 @@ Claude อ่านไฟล์นี้ตอนเริ่ม session แล�
 ## ฉาก 3: ตรวจผล + walk-forward + kill switch
 - [ ] เทียบผลกับ backtesting.py
 - [ ] walk-forward บนช่วงจูน/ทดสอบ
+- [ ] stress test: รันซ้ำด้วย slippage 0.2% — ยังต้องกำไร (backtesting.md §2)
 - [ ] `max_losing_streak`, `worst_day_pct`
 - [ ] เลือกตัวเลข kill switch จากช่วงจูน ใส่ `config/default.yaml`
 - [ ] `risk/kill_switch.py`
