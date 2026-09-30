@@ -4,7 +4,7 @@ Claude อ่านไฟล์นี้ตอนเริ่ม session แล�
 
 ## ตอนนี้อยู่: ฉาก 2 — backtest เอง (SMA 20/50)
 **ค้างไว้กลางทาง:** —
-**ครั้งถัดไป:** เริ่มฉาก 2 — `strategies/sma_cross.py` + `tests/test_lookahead.py`
+**ครั้งถัดไป:** `backtest/costs.py` + `risk/sizing.py` → engine
 
 ## ฉาก 0: ปูพื้น
 - [x] วางโครงสร้างโปรเจกต์ + เอกสาร (2026-09-25)
@@ -29,8 +29,9 @@ Claude อ่านไฟล์นี้ตอนเริ่ม session แล�
   - ราคาขึ้น ~21% 19–21 ส.ค. 2026 = ไหลทีละแท่ง + volume ×3–4 ไม่ใช่ gap
 
 ## ฉาก 2: backtest เอง (SMA 20/50)
-- [ ] `strategies/sma_cross.py`
-- [ ] `tests/test_lookahead.py` ผ่าน (และลองทำให้ fail ด้วย `.shift(-1)` ดูหนึ่งครั้ง)
+- [x] `strategies/sma_cross.py` — จุดตัดนับเมื่อ SMA ช้ามีค่าทั้งแท่งนี้และแท่งก่อน (กัน BUY ปลอมตอนหมด warm-up); 2 ปี = 194 BUY / 194 SELL (2026-09-30)
+- [x] `tests/test_lookahead.py` ผ่าน — ตัดท้าย 3 จุด + ยืนยันว่าข้อมูลปลอมมีสัญญาณ + ไม่แก้ df ที่รับเข้า (2026-09-30)
+  - [ ] ลองใส่ `.shift(-1)` ให้ test fail ดูเองหนึ่งครั้ง (ยังไม่ได้ทำ)
 - [ ] `backtest/costs.py`, `risk/sizing.py`
 - [ ] `backtest/engine.py` — รวมกฎ stop loss กรณี open กระโดดข้าม stop และกฎรอยต่อช่วง
 - [ ] `backtest/metrics.py` + `tests/test_metrics.py`

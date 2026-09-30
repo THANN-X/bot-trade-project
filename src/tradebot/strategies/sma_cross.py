@@ -11,7 +11,7 @@
 
 import pandas as pd
 
-from tradebot.strategies.base import Strategy
+from tradebot.strategies.base import Signal, Strategy
 
 
 class SmaCross(Strategy):
@@ -22,9 +22,23 @@ class SmaCross(Strategy):
         self.slow = slow
 
     def generate_signals(self, df: pd.DataFrame) -> pd.Series:
-        """TODO(ฉาก 2):
+        """
         - คำนวณ SMA fast/slow จาก close
         - หาจุดที่ "ตัดกัน" (ไม่ใช่แค่ fast > slow — ต่างกันยังไง?)
         - ช่วงแรกที่ SMA ยังคำนวณไม่ได้ (NaN) ต้องเป็น HOLD
         """
-        raise NotImplementedError
+        fast = df["close"].rolling(self.fast).mean()
+        slow = df["close"].rolling(self.slow).mean()
+
+        above = fast > slow
+        prev_above = above.shift(1, fill_value=False)
+
+        ready = slow.notna() & slow.shift(1).notna()
+        cross_up = ready & above & ~prev_above
+        cross_down = ready & ~above & prev_above
+
+        signals = pd.Series(Signal.HOLD, index=df.index)
+        signals[cross_up] = Signal.BUY
+        signals[cross_down] = Signal.SELL
+
+        return signals
