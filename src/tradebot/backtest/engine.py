@@ -7,7 +7,8 @@
 
 ลำดับต่อแท่ง:
   1. อ่านสัญญาณของแท่งก่อนหน้า (ที่ปิดแล้ว)                     — หัวข้อ 1
-  2. ถ้ามีสัญญาณ → ถาม risk/ ว่าเข้าได้ไหม ขนาดเท่าไหร่
+  2. ถ้ามีสัญญาณ → ถาม risk/ ว่าเข้าได้ไหม ขนาดเท่าไหร่ (มีเพดานเงิน)      — หัวข้อ 2
+     ขนาดถูกตัดด้วยเพดาน → นับเข้า n_capped
   3. เข้าออเดอร์ที่ open ของแท่งนี้ + หัก fee/slippage (costs.py)  — หัวข้อ 2
   4. เช็ค stop loss: open ข้าม stop → ปิดที่ open, ไม่งั้น low แตะ → ปิดที่ stop
      แท่งที่เพิ่งเข้าไม้เช็คแค่ low                                  — หัวข้อ 6
@@ -40,6 +41,7 @@ class Trade:
 class BacktestResult:
     trades: list[Trade] = field(default_factory=list)
     equity_curve: pd.Series | None = None
+    n_capped: int = 0  # ไม้ที่ขนาดถูกตัดด้วยเพดานเงิน (backtesting.md หัวข้อ 2)
 
 
 def run_backtest(df: pd.DataFrame, strategy: Strategy, config: dict) -> BacktestResult:
