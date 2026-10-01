@@ -35,7 +35,7 @@ Claude อ่านไฟล์นี้ตอนเริ่ม session แล�
 - [x] `backtest/costs.py`, `risk/sizing.py` + test 16 ตัว (TDD: test จากตัวเลขในเอกสาร) (2026-09-30)
   - เพดานเงิน = equity ÷ (entry × (1+s) × (1+f)) — แบบคูณ ไม่ใช่บวก (แบบบวกเงินสดติดลบ −0.005)
   - stop 300 ชนเพดาน → เสียจริงเมื่อโดน stop ≈ 0.65% (ราคา 0.35% + ค่าใช้จ่ายไปกลับ ~0.30%)
-  - engine ต้องนับ n_capped ลง journal — ยังไม่ได้ตัดสินว่า engine จะรู้ได้ยังไงว่าขนาดถูกตัด
+  - `position_size` คืน `(size, capped)` ให้ engine นับ n_capped — สูตรอยู่ที่ sizing ที่เดียว (2026-10-01)
 - [ ] `backtest/engine.py` — รวมกฎ stop loss กรณี open กระโดดข้าม stop และกฎรอยต่อช่วง
 - [ ] `backtest/metrics.py` + `tests/test_metrics.py`
 - [ ] `backtest/journal.py` — เขียน `docs/journal.jsonl` อัตโนมัติ

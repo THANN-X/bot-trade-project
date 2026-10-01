@@ -1,4 +1,8 @@
-"""ขนาดไม้จากความเสี่ยงต่อไม้ — กฎอยู่ที่ docs/backtesting.md หัวข้อ 2 "ขนาดไม้" """
+"""ขนาดไม้จากความเสี่ยงต่อไม้ — กฎอยู่ที่ docs/backtesting.md หัวข้อ 2 "ขนาดไม้"
+
+position_size คืน (size, capped): capped = True เมื่อขนาดถูกตัดด้วยเพดานเงิน
+engine ใช้ capped นับ n_capped ลง journal — ให้ sizing เป็นที่เดียวที่รู้สูตร
+"""
 
 import pytest
 
@@ -10,18 +14,22 @@ FEE = 0.001
 
 
 def test_example_from_docstring():
-    """พอร์ต 10,000 เสี่ยง 1% = ยอมเสีย 100; stop ห่าง 1,000 → 0.1 BTC"""
-    assert position_size(10_000, 0.01, 60_000, 59_000) == pytest.approx(0.1)
+    """พอร์ต 10,000 เสี่ยง 1% = ยอมเสีย 100; stop ห่าง 1,000 → 0.1 BTC ไม่ชนเพดาน"""
+    size, capped = position_size(10_000, 0.01, 60_000, 59_000)
+    assert size == pytest.approx(0.1)
+    assert capped is False
 
 
 def test_wider_stop_means_smaller_size():
     """stop 3,000 จากฉาก 0 → 100 ÷ 3,000 ≈ 0.0333 BTC"""
-    assert position_size(10_000, 0.01, 84_610, 81_610) == pytest.approx(100 / 3_000)
+    size, capped = position_size(10_000, 0.01, 84_610, 81_610)
+    assert size == pytest.approx(100 / 3_000)
+    assert capped is False
 
 
 def test_loss_at_stop_equals_risk():
     """หัวใจของสูตร: ถ้าโดน stop พอดี ต้องเสียเท่ากับ equity × risk_pct (ยังไม่รวมค่าใช้จ่าย)"""
-    size = position_size(10_000, 0.02, 60_000, 58_500)
+    size, _ = position_size(10_000, 0.02, 60_000, 58_500)
     assert size * (60_000 - 58_500) == pytest.approx(10_000 * 0.02)
 
 
@@ -29,15 +37,17 @@ def test_cannot_buy_more_than_equity():
     """spot ไม่มี leverage — stop แคบ 300 ให้ขนาด 0.333 BTC ≈ 28,000 USDT เกินพอร์ต 10,000
     ต้องตัดเหลือเท่าที่เงินพอ: 10,000 ÷ 84,610 (ความเสี่ยงจริงจะต่ำกว่า 1% — ยอมรับได้)
     """
-    size = position_size(10_000, 0.01, 84_610, 84_310)
+    size, capped = position_size(10_000, 0.01, 84_610, 84_310)
     assert size == pytest.approx(10_000 / 84_610)
     assert size * 84_610 <= 10_000 + 1e-9
+    assert capped is True
 
 
 def test_cap_includes_costs():
     """เพดานต้องเผื่อ slippage และ fee: equity ÷ (entry × (1 + s) × (1 + f))"""
-    size = position_size(10_000, 0.01, 84_610, 84_310, SLIPPAGE, FEE)
+    size, capped = position_size(10_000, 0.01, 84_610, 84_310, SLIPPAGE, FEE)
     assert size == pytest.approx(10_000 / (84_610 * (1 + SLIPPAGE) * (1 + FEE)))
+    assert capped is True
 
 
 def test_cash_never_negative_after_buy():
@@ -45,7 +55,7 @@ def test_cash_never_negative_after_buy():
     (สูตรแบบบวก 1 + s + f จะเหลือ −0.005 USDT เพราะ fee คิดจากราคาหลังบวก slippage)
     """
     equity, entry = 10_000, 84_610
-    size = position_size(equity, 0.01, entry, 84_310, SLIPPAGE, FEE)
+    size, _ = position_size(equity, 0.01, entry, 84_310, SLIPPAGE, FEE)
 
     buy_price = apply_slippage(entry, "buy", SLIPPAGE)
     notional = size * buy_price
@@ -56,7 +66,9 @@ def test_cash_never_negative_after_buy():
 
 def test_costs_do_not_change_risk_based_size():
     """stop กว้างพอ (ไม่ชนเพดาน) → ค่าใช้จ่ายไม่ทำให้ขนาดตามความเสี่ยงเปลี่ยน"""
-    assert position_size(10_000, 0.01, 60_000, 59_000, SLIPPAGE, FEE) == pytest.approx(0.1)
+    size, capped = position_size(10_000, 0.01, 60_000, 59_000, SLIPPAGE, FEE)
+    assert size == pytest.approx(0.1)
+    assert capped is False
 
 
 def test_stop_equal_to_entry_is_rejected():

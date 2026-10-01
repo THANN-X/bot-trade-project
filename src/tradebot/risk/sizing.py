@@ -13,7 +13,7 @@ def position_size(
     stop: float,
     slippage_pct: float = 0.0,
     fee_pct: float = 0.0,
-) -> float:
+) -> tuple[float, bool]:
     """คืนจำนวนเหรียญที่ซื้อ ใช้ค่าที่น้อยกว่าระหว่าง:
 
     - ตามความเสี่ยง: equity × risk_pct ÷ (entry − stop)
@@ -21,6 +21,7 @@ def position_size(
       คูณกันไม่ใช่บวก เพราะ fee คิดจากราคาหลังบวก slippage แล้ว — แบบบวกจะจ่ายเกินเงินเล็กน้อย
 
     ถ้าเงินไม่พอซื้อตามความเสี่ยง จะตัดเหลือเท่าที่ซื้อได้ ความเสี่ยงจริงจึงต่ำกว่า risk_pct
+    คืน (size, capped) — capped = True เมื่อถูกตัดด้วยเพดานเงิน (engine ใช้นับ n_capped)
     stop ต้องต่ำกว่า entry (long อย่างเดียว) ไม่อย่างนั้น raise ValueError
     """
     risk_amount = equity * risk_pct
@@ -31,5 +32,7 @@ def position_size(
 
     coin_amount = risk_amount / stop_distance
     max_coin_amount = equity / (entry * (1 + slippage_pct) * (1 + fee_pct))
+    size = min(coin_amount, max_coin_amount)
+    capped = coin_amount > max_coin_amount
 
-    return min(coin_amount, max_coin_amount)
+    return size, capped
