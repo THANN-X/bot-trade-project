@@ -50,6 +50,7 @@ Claude อ่านไฟล์นี้ตอนเริ่ม session แล�
 - [ ] `risk/kill_switch.py`
 - [ ] กัน holdout ใน `run_backtest.py` ด้วย `journal.count_runs`
 - [ ] รัน holdout ครั้งเดียว
+- [ ] ทบทวน decision 0003 (futures) — เริ่มได้เมื่อ expectancy บวกในช่วงทดสอบ + ผ่าน stress test
 
 ## ฉาก 4: Go + benchmark
 ## ฉาก 5: hexagonal + paper trading บน testnet

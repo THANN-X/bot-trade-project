@@ -26,7 +26,7 @@
 - ฉาก 3: ตรวจกับ backtesting.py, walk-forward, เลือกตัวเลข kill switch จากช่วงจูน
 - ฉาก 4: พอร์ต engine ไป Go, benchmark, goroutine ทดสอบพารามิเตอร์ขนาน
 - ฉาก 5: ยกโครงเป็น hexagonal (ports & adapters) แล้ว paper trading บน testnet 1–3 เดือน
-- หลังจากนั้นค่อยพิจารณา ML / LLM sentiment
+- หลังจากนั้นค่อยพิจารณา futures (short / leverage / funding — **ห้ามเริ่มก่อน spot ผ่านฉาก 3**, `docs/decisions/0003-futures-after-spot.md`) และ ML / LLM sentiment
 
 ## โครงสร้าง — รายละเอียด: `docs/architecture.md`
 - `strategies/` เป็นโค้ดบริสุทธิ์: รับ DataFrame เข้า คืนสัญญาณออก **ห้าม I/O** (ไม่รู้จัก exchange, ไฟล์, เวลาปัจจุบัน)
