@@ -16,9 +16,10 @@ def apply_slippage(price: float, side: str, slippage_pct: float) -> float:
     """
     if side == "buy":
         return price * (1 + slippage_pct)
-    if side == "sell":
+    elif side == "sell":
         return price * (1 - slippage_pct)
-    raise ValueError(f"Invalid side. Expected 'buy' or 'sell'. got {side!r}")
+    else:
+        raise ValueError(f"Invalid side. Expected 'buy' or 'sell'. got {side!r}")
 
 
 def fee(notional: float, fee_pct: float) -> float:
