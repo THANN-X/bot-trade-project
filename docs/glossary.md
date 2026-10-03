@@ -31,7 +31,7 @@ Claude ดูแลไฟล์นี้: เมื่อกฎในเอก�
 | คำ | ในโปรเจกต์นี้ | ที่มา |
 |---|---|---|
 | ความเสี่ยงต่อไม้ | 1% ของพอร์ต (เพดาน 2%); ขนาดไม้ = เงินที่ยอมเสีย ÷ ระยะ stop | risk/sizing.py |
-| เพดานเงิน | ขนาดไม้ไม่เกิน equity ÷ (entry × (1+slippage) × (1+fee)) — spot ไม่มี leverage; ถูกตัดแล้วเทรดต่อ (≠ `max_position_pct` ที่หยุดบอท) | backtesting.md §2 |
+| เพดานเงิน | ขนาดไม้ไม่เกิน equity ÷ (ราคาเข้าที่ได้จริง × (1+fee)) = equity ÷ (open × (1+slippage) × (1+fee)) — spot ไม่มี leverage; ถูกตัดแล้วเทรดต่อ (≠ `max_position_pct` ที่หยุดบอท) | backtesting.md §2 |
 | Drawdown | ลดจากจุดสูงสุดของ equity; เกิน 15% → หยุดถาวร ต้อง backtest ใหม่ | decisions/0001 |
 | Kill switch | กฎหยุดบอท 4 ข้อ ตัวเลขมาจาก backtest ช่วงจูน | decisions/0001 |
 | Cool-off | แก้กลยุทธ์ได้หลังผ่านไป ≥ 1 เดือน และต้อง backtest ใหม่ | CLAUDE.md |

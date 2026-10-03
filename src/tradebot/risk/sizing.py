@@ -9,29 +9,31 @@
 def position_size(
     equity: float,
     risk_pct: float,
-    entry: float,
+    fill_price: float,
     stop: float,
-    slippage_pct: float = 0.0,
     fee_pct: float = 0.0,
 ) -> tuple[float, bool]:
     """คืนจำนวนเหรียญที่ซื้อ ใช้ค่าที่น้อยกว่าระหว่าง:
 
-    - ตามความเสี่ยง: equity × risk_pct ÷ (entry − stop)
-    - ตามเงินที่มี (spot ไม่มี leverage): equity ÷ (entry × (1 + slippage) × (1 + fee))
-      คูณกันไม่ใช่บวก เพราะ fee คิดจากราคาหลังบวก slippage แล้ว — แบบบวกจะจ่ายเกินเงินเล็กน้อย
+    - ตามความเสี่ยง: equity × risk_pct ÷ (fill_price − stop)
+    - ตามเงินที่มี (spot ไม่มี leverage): equity ÷ (fill_price × (1 + fee))
+
+    fill_price — ราคาเข้าที่ได้จริง หลังบวก slippage แล้ว (engine คำนวณก่อนเรียก)
+                 ฟังก์ชันนี้จึงไม่รับ slippage — ถ้ารับจะนับ slippage ซ้ำสองรอบ
+    fee_pct    — fee คิดจากมูลค่าหลังบวก slippage จึงคูณกับ fill_price ตรง ๆ
 
     ถ้าเงินไม่พอซื้อตามความเสี่ยง จะตัดเหลือเท่าที่ซื้อได้ ความเสี่ยงจริงจึงต่ำกว่า risk_pct
     คืน (size, capped) — capped = True เมื่อถูกตัดด้วยเพดานเงิน (engine ใช้นับ n_capped)
-    stop ต้องต่ำกว่า entry (long อย่างเดียว) ไม่อย่างนั้น raise ValueError
+    stop ต้องต่ำกว่า fill_price (long อย่างเดียว) ไม่อย่างนั้น raise ValueError
     """
     risk_amount = equity * risk_pct
-    stop_distance = entry - stop
+    stop_distance = fill_price - stop
 
     if stop_distance <= 0:
-        raise ValueError(f"stop ต้องต่ำกว่า entry (long) ได้ entry={entry}, stop={stop}")
+        raise ValueError(f"stop ต้องต่ำกว่าราคาเข้า (long) ได้ fill_price={fill_price}, stop={stop}")
 
     coin_amount = risk_amount / stop_distance
-    max_coin_amount = equity / (entry * (1 + slippage_pct) * (1 + fee_pct))
+    max_coin_amount = equity / (fill_price * (1 + fee_pct))
     size = min(coin_amount, max_coin_amount)
     capped = coin_amount > max_coin_amount
 

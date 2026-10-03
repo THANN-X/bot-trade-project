@@ -228,3 +228,20 @@ def test_8b_n_capped_counts_trimmed_trades():
 
     assert result.n_capped == 1
     assert result.trades[0].size == pytest.approx(100.0)
+
+
+def test_8c_capped_buy_with_costs_spends_all_cash():
+    """ชนเพดาน + เปิดค่าใช้จ่ายจริง → ค่าเหรียญ + fee ขาเข้า ต้องเท่ากับเงินทั้งพอร์ตพอดี
+    จับบั๊ก "นับ slippage ซ้ำ" (engine บวก slippage แล้ว sizing บวกอีก → เหลือเงินค้าง ~5 USDT)
+    """
+    df = bars(
+        (99.0, 100.0, 98.5, 99.5),
+        (100.0, 101.0, 100.0, 100.5),  # เข้า 100.05, stop 0.1% ≈ 99.95 → low 100 ไม่แตะ
+        (100.5, 101.0, 100.2, 101.0),
+    )
+    result = run_backtest(df, sigs(df, "B.."), config(slippage=0.0005, fee=0.001, stop_pct=0.001))
+    trade = result.trades[0]
+
+    spent = trade.size * trade.entry_price * (1 + 0.001)
+    assert result.n_capped == 1
+    assert spent == pytest.approx(CAPITAL)

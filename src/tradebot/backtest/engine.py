@@ -111,8 +111,9 @@ def run_backtest(df: pd.DataFrame, signals: pd.Series, config: dict) -> Backtest
             elif prev_signal == Signal.BUY and pos is None:
                 buy_price = apply_slippage(bar["open"], "buy", slippage)
                 stop = stop_price(buy_price, config["risk"])
+                # buy_price บวก slippage แล้ว → sizing รับแค่ fee (ไม่นับ slippage ซ้ำ)
                 size, capped = position_size(
-                    cash, config["risk"]["risk_per_trade_pct"], buy_price, stop, slippage, fee_pct
+                    cash, config["risk"]["risk_per_trade_pct"], buy_price, stop, fee_pct=fee_pct
                 )
                 fee_in = fee(size * buy_price, fee_pct)
                 cash -= size * buy_price + fee_in

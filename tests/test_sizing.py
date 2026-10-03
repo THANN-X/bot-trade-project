@@ -2,6 +2,9 @@
 
 position_size คืน (size, capped): capped = True เมื่อขนาดถูกตัดด้วยเพดานเงิน
 engine ใช้ capped นับ n_capped ลง journal — ให้ sizing เป็นที่เดียวที่รู้สูตร
+
+entry = ราคาเข้าที่ได้จริง (หลังบวก slippage แล้ว) เสมอ — เหมือน stop_price
+sizing จึงไม่รับ slippage เข้ามา ไม่อย่างนั้นจะนับ slippage ซ้ำสองรอบ
 """
 
 import pytest
@@ -43,30 +46,34 @@ def test_cannot_buy_more_than_equity():
     assert capped is True
 
 
-def test_cap_includes_costs():
-    """เพดานต้องเผื่อ slippage และ fee: equity ÷ (entry × (1 + s) × (1 + f))"""
-    size, capped = position_size(10_000, 0.01, 84_610, 84_310, SLIPPAGE, FEE)
+def test_cap_includes_fee():
+    """เพดาน = equity ÷ (ราคาที่ได้จริง × (1 + fee))
+    ราคาที่ได้จริง = open × (1 + s) อยู่แล้ว → เท่ากับ equity ÷ (open × (1 + s) × (1 + f))
+    """
+    fill = apply_slippage(84_610, "buy", SLIPPAGE)
+    size, capped = position_size(10_000, 0.01, fill, 84_310, fee_pct=FEE)
     assert size == pytest.approx(10_000 / (84_610 * (1 + SLIPPAGE) * (1 + FEE)))
     assert capped is True
 
 
-def test_cash_never_negative_after_buy():
-    """ซื้อตามขนาดที่ได้ แล้วจ่ายจริงผ่าน costs.py — เงินสดที่เหลือต้องไม่ติดลบ
-    (สูตรแบบบวก 1 + s + f จะเหลือ −0.005 USDT เพราะ fee คิดจากราคาหลังบวก slippage)
+def test_capped_buy_spends_all_cash_exactly():
+    """ชนเพดานแล้วจ่ายจริงผ่าน costs.py — เงินสดที่เหลือต้องเป็น 0 พอดี
+    ติดลบ = ซื้อเกินเงิน (เช่นสูตรแบบบวก 1 + s + f เหลือ −0.005)
+    เหลือค้าง = นับค่าใช้จ่ายซ้ำ (เช่นนับ slippage สองรอบ เหลือ ~5 USDT)
     """
-    equity, entry = 10_000, 84_610
-    size, _ = position_size(equity, 0.01, entry, 84_310, SLIPPAGE, FEE)
+    equity = 10_000
+    fill = apply_slippage(84_610, "buy", SLIPPAGE)
+    size, _ = position_size(equity, 0.01, fill, 84_310, fee_pct=FEE)
 
-    buy_price = apply_slippage(entry, "buy", SLIPPAGE)
-    notional = size * buy_price
+    notional = size * fill
     cash_left = equity - notional - fee(notional, FEE)
 
-    assert cash_left >= -1e-9
+    assert cash_left == pytest.approx(0, abs=1e-6)
 
 
 def test_costs_do_not_change_risk_based_size():
     """stop กว้างพอ (ไม่ชนเพดาน) → ค่าใช้จ่ายไม่ทำให้ขนาดตามความเสี่ยงเปลี่ยน"""
-    size, capped = position_size(10_000, 0.01, 60_000, 59_000, SLIPPAGE, FEE)
+    size, capped = position_size(10_000, 0.01, 60_000, 59_000, fee_pct=FEE)
     assert size == pytest.approx(0.1)
     assert capped is False
 
