@@ -4,7 +4,7 @@ Claude อ่านไฟล์นี้ตอนเริ่ม session แล�
 
 ## ตอนนี้อยู่: ฉาก 2 — backtest เอง (SMA 20/50)
 **ค้างไว้กลางทาง:** —
-**ครั้งถัดไป:** `backtest/engine.py` (เริ่มจากถือทีละไม้ long อย่างเดียว)
+**ครั้งถัดไป:** `backtest/metrics.py` + `tests/test_metrics.py` → journal → run_backtest.py (รอบแรกบนช่วงจูน) → ATR stop
 
 ## ฉาก 0: ปูพื้น
 - [x] วางโครงสร้างโปรเจกต์ + เอกสาร (2026-09-25)
@@ -36,7 +36,15 @@ Claude อ่านไฟล์นี้ตอนเริ่ม session แล�
   - เพดานเงิน = equity ÷ (entry × (1+s) × (1+f)) — แบบคูณ ไม่ใช่บวก (แบบบวกเงินสดติดลบ −0.005)
   - stop 300 ชนเพดาน → เสียจริงเมื่อโดน stop ≈ 0.65% (ราคา 0.35% + ค่าใช้จ่ายไปกลับ ~0.30%)
   - `position_size` คืน `(size, capped)` ให้ engine นับ n_capped — สูตรอยู่ที่ sizing ที่เดียว (2026-10-01)
-- [ ] `backtest/engine.py` — รวมกฎ stop loss กรณี open กระโดดข้าม stop และกฎรอยต่อช่วง
+- [x] `risk/stops.py` แบบ pct — `tests/test_stops.py` (4 test) (2026-10-03)
+- [x] `backtest/engine.py` — `tests/test_engine.py` เขียวครบ 11 test (2026-10-03)
+  - ปิดไม้ 4 แบบผ่าน `close_position` ตัวเดียว (gap, SELL, low แตะ stop, แท่งสุดท้าย)
+  - ยังไม่เคยรันกับข้อมูลจริง — รอบแรกต้องผ่าน run_backtest.py ให้ลง journal
+  - รับ `signals` แทน `strategy` (สัญญาณคำนวณจากข้อมูลเต็มก่อนตัดช่วง)
+  - `Trade.exit_reason`: "signal" | "stop" | "end"
+- [ ] ขั้นที่สอง: stop แบบ ATR (`stop_method: atr`) — หลัง engine เขียวครบ
+  - ATR ของแท่งสัญญาณ i ไม่ใช่แท่งเข้า i+1 + test look-ahead ของ ATR + test ใน test_stops
+  - เลือกสูตร ATR (ค่าเฉลี่ยธรรมดา หรือ Wilder) — warm-up ต่างกัน (0002)
 - [ ] `backtest/metrics.py` + `tests/test_metrics.py`
 - [ ] `backtest/journal.py` — เขียน `docs/journal.jsonl` อัตโนมัติ
 - [ ] `scripts/run_backtest.py --split tune` รันจบ + มีบรรทัดใน journal
