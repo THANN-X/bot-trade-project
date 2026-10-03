@@ -8,19 +8,19 @@
 """
 
 
-def stop_price(entry: float, risk_cfg: dict, atr: float | None = None) -> float:
-    """คืนราคา stop (ต่ำกว่า entry เสมอ)
+def stop_price(fill_price: float, risk_cfg: dict, atr: float | None = None) -> float:
+    """คืนราคา stop (ต่ำกว่า fill_price เสมอ)
 
-    entry    — ราคาเข้าที่ได้จริง (หลังบวก slippage)
-    risk_cfg — config["risk"] ที่คนเรียกส่งมา ฟังก์ชันนี้ไม่อ่านไฟล์ config เอง
-    atr      — ATR ของแท่งสัญญาณ ใช้เฉพาะ stop_method = "atr"
+    fill_price — ราคาเข้าที่ได้จริง หลังบวก slippage แล้ว (ความหมายเดียวกับใน sizing)
+    risk_cfg   — config["risk"] ที่คนเรียกส่งมา ฟังก์ชันนี้ไม่อ่านไฟล์ config เอง
+    atr        — ATR ของแท่งสัญญาณ ใช้เฉพาะ stop_method = "atr"
 
     stop_method ไม่รู้จัก → raise ValueError แทนที่จะเงียบ ๆ แล้วใช้วิธีอื่น
     """
     method = risk_cfg["stop_method"]
 
     if method == "pct":
-        return entry * (1 - risk_cfg["stop_pct"])
+        return fill_price * (1 - risk_cfg["stop_pct"])
     elif method == "atr":
         raise NotImplementedError("stop_method 'atr' ยังไม่ทำ — ขั้นที่สองของฉาก 2")
     else:
