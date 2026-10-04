@@ -42,6 +42,7 @@ class Trade:
     pnl: float  # เงินที่ได้ตอนออก − เงินที่จ่ายตอนเข้า (รวม fee ทั้งสองขาแล้ว)
     fees: float  # fee ขาเข้า + ขาออก
     exit_reason: str  # "signal" | "stop" | "end"
+    slippage: float = 0.0  # เงินที่เสียไปกับ slippage ขาเข้า + ขาออก (ฝังอยู่ในราคาแล้ว ไม่ใช่หักเพิ่ม)
 
 
 @dataclass
@@ -59,6 +60,7 @@ def close_position(
     sell_price = apply_slippage(raw_price, "sell", slippage_pct)
     fee_out = fee(pos["size"] * sell_price, fee_pct)
     proceeds = pos["size"] * sell_price - fee_out
+    slippage_out = pos["size"] * (raw_price - sell_price)  # ขายได้ถูกกว่าราคาดิบเท่าไหร่
     trade = Trade(
         entry_time=pos["entry_time"],
         exit_time=time,
@@ -68,6 +70,7 @@ def close_position(
         pnl=proceeds - (pos["size"] * pos["entry_price"] + pos["fee"]),
         fees=pos["fee"] + fee_out,
         exit_reason=reason,
+        slippage=pos["slippage"] + slippage_out,
     )
     return trade, proceeds
 
@@ -123,6 +126,7 @@ def run_backtest(df: pd.DataFrame, signals: pd.Series, config: dict) -> Backtest
                     "size": size,
                     "stop": stop,
                     "fee": fee_in,
+                    "slippage": size * (buy_price - bar["open"]),  # ซื้อแพงกว่าราคาดิบเท่าไหร่
                 }
                 n_capped += capped
 

@@ -139,9 +139,18 @@ entry         = ราคาเข้าที่ได้จริง = open ×
   "risk": {"risk_per_trade_pct": 0.01, "stop_method": "pct", "stop_pct": 0.02},
   "results": {"net_profit": 0, "expectancy": 0, "profit_factor": 0, "max_drawdown": 0,
               "win_rate": 0, "n_trades": 0, "n_capped": 0, "max_losing_streak": 0,
-              "worst_day_pct": 0}
+              "worst_day_pct": 0,
+              "by_exit_reason": {"signal": {"n": 0, "pnl": 0}, "stop": {"n": 0, "pnl": 0},
+                                 "end": {"n": 0, "pnl": 0}},
+              "costs_paid": {"fees": 0, "slippage": 0, "total": 0}},
+  "benchmark": {"buy_and_hold": {"net_profit": 0, "return_pct": 0, "max_drawdown": 0}}
 }
 ```
+- `by_exit_reason` = จำนวนไม้และ pnl รวม แยกตาม `exit_reason` — มีครบ 3 key เสมอ
+- `costs_paid` = fee + slippage ที่จ่ายจริงจาก engine (อยู่ใน pnl แล้ว ไม่ได้หักซ้ำ) — บอกว่าถ้าไม่มีค่าใช้จ่ายจะดีขึ้นเท่าไหร่
+- `benchmark.buy_and_hold` = ซื้อด้วยเงินทั้งพอร์ตที่ open แท่งแรกของช่วง ขายที่ close แท่งสุดท้าย
+  หัก slippage + fee ทั้งสองขาแบบเดียวกับ engine — **กลยุทธ์ที่แพ้ buy & hold ไม่มีเหตุผลให้ใช้**
+  (เว้นแต่ drawdown ต่ำกว่ามากจนคุ้ม — ต้องดูทั้งสองตัวคู่กัน)
 - `risk` = ค่าที่เปลี่ยนผลได้นอกจาก params ของกลยุทธ์ — ไม่บันทึกไว้ รอบ stop 2% กับ 3% จะแยกกันไม่ออก
   (stop แบบ atr ต้องบันทึก `atr_period`, `atr_mult` เพิ่มเมื่อทำขั้นนั้น)
 - `n_capped` = จำนวนไม้ที่ขนาดถูกตัดด้วยเพดานเงิน (หัวข้อ 2 "ขนาดไม้")

@@ -79,6 +79,8 @@ def test_1b_costs_on_entry_and_exit():
     assert trade.size == pytest.approx(size)
     assert trade.fees == pytest.approx(fee_in + fee_out)
     assert trade.pnl == pytest.approx((size * exit_ - fee_out) - (size * entry + fee_in))
+    # slippage จริง: ซื้อแพงกว่า open 0.05 + ขายถูกกว่า close 0.0505 ต่อเหรียญ
+    assert trade.slippage == pytest.approx(size * (100.05 - 100.0) + size * (101.0 - 100.9495))
 
 
 # ── 2. SELL → ออกที่ open แท่งถัดไป (หัวข้อ 2) ──────────────────────────────

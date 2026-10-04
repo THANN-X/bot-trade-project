@@ -16,11 +16,13 @@ import pytest
 
 from tradebot.backtest.engine import Trade
 from tradebot.backtest.metrics import (
+    by_exit_reason,
     expectancy,
     max_drawdown,
     max_losing_streak,
     net_profit,
     profit_factor,
+    total_costs,
     win_rate,
     worst_day_pct,
 )
@@ -133,3 +135,28 @@ def test_worst_day_ignores_intraday_dip():
     """
     idx = pd.to_datetime(["2024-01-01 10:00", "2024-01-01 23:00", "2024-01-02 23:00"], utc=True)
     assert worst_day_pct(pd.Series([10_000, 10_100, 10_200.0], index=idx)) == 0
+
+
+# ── รายละเอียดสำหรับวิเคราะห์ว่าทำไมกำไร/ขาดทุน ──────────────────────────────
+def test_by_exit_reason():
+    t = pd.Timestamp("2024-01-01", tz="UTC")
+    mixed = [
+        Trade(t, t, 100.0, 98.0, 1.0, -100.0, 0.0, "stop"),
+        Trade(t, t, 100.0, 98.0, 1.0, -90.0, 0.0, "stop"),
+        Trade(t, t, 100.0, 105.0, 1.0, 50.0, 0.0, "signal"),
+    ]
+    assert by_exit_reason(mixed) == {
+        "signal": {"n": 1, "pnl": pytest.approx(50.0)},
+        "stop": {"n": 2, "pnl": pytest.approx(-190.0)},
+        "end": {"n": 0, "pnl": 0.0},  # ไม่มีไม้ก็ต้องมี key ครบ
+    }
+
+
+def test_total_costs():
+    t = pd.Timestamp("2024-01-01", tz="UTC")
+    two = [
+        Trade(t, t, 100.0, 100.0, 1.0, 0.0, 10.0, "signal", slippage=5.0),
+        Trade(t, t, 100.0, 100.0, 1.0, 0.0, 12.0, "stop", slippage=6.0),
+    ]
+    assert total_costs(two) == {"fees": 22.0, "slippage": 11.0, "total": 33.0}
+    assert total_costs([]) == {"fees": 0, "slippage": 0, "total": 0}

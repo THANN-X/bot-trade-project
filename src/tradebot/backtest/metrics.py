@@ -70,6 +70,31 @@ def max_losing_streak(trades: list[Trade]) -> int:
     return max_streak
 
 
+EXIT_REASONS = ("signal", "stop", "end")
+
+
+def by_exit_reason(trades: list[Trade]) -> dict:
+    """แยกจำนวนไม้และ pnl รวมตามเหตุผลที่ออก — ตอบว่าขาดทุนมาจากโดน stop หรือจากสัญญาณขาย
+
+    คืนครบทุกเหตุผลเสมอ (ไม่มีไม้ → n = 0, pnl = 0) เทียบระหว่างรอบได้ง่าย
+    """
+    summary = {reason: {"n": 0, "pnl": 0.0} for reason in EXIT_REASONS}
+    for t in trades:
+        summary[t.exit_reason]["n"] += 1
+        summary[t.exit_reason]["pnl"] += t.pnl
+    return summary
+
+
+def total_costs(trades: list[Trade]) -> dict:
+    """ต้นทุนจริงที่จ่ายไปทั้งหมด: fee + slippage ของทุกไม้ (จากตัวเลขที่ engine บันทึก)
+
+    ต้นทุนรวมอยู่ใน pnl แล้ว — ตัวเลขนี้บอกว่า "ถ้าไม่มีค่าใช้จ่าย จะดีขึ้นเท่าไหร่"
+    """
+    fees = sum(t.fees for t in trades)
+    slippage = sum(t.slippage for t in trades)
+    return {"fees": fees, "slippage": slippage, "total": fees + slippage}
+
+
 def worst_day_pct(equity_curve: pd.Series) -> float:
     """ขาดทุนของวันที่แย่ที่สุด → ใช้ตั้ง kill_switch.daily_loss
 
