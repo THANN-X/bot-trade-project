@@ -7,7 +7,7 @@ load_config → fetch_ohlcv → save_csv → plot_price
 
 from tradebot.config import PROJECT_ROOT, load_config
 from tradebot.data.fetcher import fetch_ohlcv
-from tradebot.data.storage import save_csv
+from tradebot.data.storage import raw_csv_path, save_csv
 from tradebot.viz.plot import plot_price
 
 
@@ -18,14 +18,10 @@ def main() -> None:
         market["exchange"], market["symbol"], market["timeframe"], market["history_days"]
     )  # ดึงข้อมูล OHLCV จาก exchange ตาม config
 
-    # เปลี่ยนสัญลักษณ์ให้เหมาะสมกับชื่อไฟล์ (เช่น เปลี่ยน "/" เป็น "-")
-    symbol_for_file = market["symbol"].replace("/", "-")
-    # สร้างชื่อไฟล์ CSV และ PNG
-    name = f"{market['exchange']}_{symbol_for_file}_{market['timeframe']}.csv"
-    # สร้าง path สำหรับเก็บไฟล์ CSV และ PNG
-    csv_path = PROJECT_ROOT / "data" / "raw" / name
-    # สร้าง path สำหรับเก็บไฟล์ PNG
-    png_path = (PROJECT_ROOT / "reports" / name).with_suffix(".png")
+    # path ของ CSV มาจาก storage.raw_csv_path — run_backtest.py ใช้ฟังก์ชันเดียวกันตอนอ่าน
+    csv_path = raw_csv_path(market)
+    # สร้าง path สำหรับเก็บไฟล์ PNG (ชื่อเดียวกับ CSV แต่อยู่ใน reports/)
+    png_path = (PROJECT_ROOT / "reports" / csv_path.name).with_suffix(".png")
     # สร้างโฟลเดอร์สำหรับเก็บไฟล์ PNG หากยังไม่มี
     png_path.parent.mkdir(parents=True, exist_ok=True)
 

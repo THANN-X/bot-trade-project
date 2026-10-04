@@ -136,11 +136,14 @@ entry         = ราคาเข้าที่ได้จริง = open ×
   "data": {"symbol": "BTC/USDT", "timeframe": "1h", "start": "...", "end": "..."},
   "split": "tune",
   "costs": {"fee_pct": 0.001, "slippage_pct": 0.0005},
+  "risk": {"risk_per_trade_pct": 0.01, "stop_method": "pct", "stop_pct": 0.02},
   "results": {"net_profit": 0, "expectancy": 0, "profit_factor": 0, "max_drawdown": 0,
               "win_rate": 0, "n_trades": 0, "n_capped": 0, "max_losing_streak": 0,
               "worst_day_pct": 0}
 }
 ```
+- `risk` = ค่าที่เปลี่ยนผลได้นอกจาก params ของกลยุทธ์ — ไม่บันทึกไว้ รอบ stop 2% กับ 3% จะแยกกันไม่ออก
+  (stop แบบ atr ต้องบันทึก `atr_period`, `atr_mult` เพิ่มเมื่อทำขั้นนั้น)
 - `n_capped` = จำนวนไม้ที่ขนาดถูกตัดด้วยเพดานเงิน (หัวข้อ 2 "ขนาดไม้")
 - **ค่าพิเศษของ `profit_factor`** — อ่านคู่กับ `n_trades` เสมอ:
   | `profit_factor` | `n_trades` | ความหมาย |
