@@ -19,6 +19,7 @@ def fetch_ohlcv(exchange: str, symbol: str, timeframe: str, days: int) -> pd.Dat
     since = now - days * day_ms
     rows = []
 
+    # ดึงข้อมูลทีละ 1000 แท่ง (ccxt limit) จนกว่าจะครบช่วงเวลา
     while since < now:
         page = ex.fetch_ohlcv(symbol, timeframe, since=since, limit=1000)
         if not page:
