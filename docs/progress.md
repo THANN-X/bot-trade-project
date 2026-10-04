@@ -4,7 +4,7 @@ Claude อ่านไฟล์นี้ตอนเริ่ม session แล�
 
 ## ตอนนี้อยู่: ฉาก 2 — backtest เอง (SMA 20/50)
 **ค้างไว้กลางทาง:** —
-**ครั้งถัดไป:** `backtest/journal.py` (ตัดสินใจก่อน: profit factor = inf จะเขียนลง JSON ยังไง) → run_backtest.py (รอบแรกบนช่วงจูน) → ATR stop
+**ครั้งถัดไป:** `scripts/run_backtest.py --split tune` — รอบแรกที่ลง journal (commit ก่อนรันให้ git_dirty = false) → ATR stop
 
 ## ฉาก 0: ปูพื้น
 - [x] วางโครงสร้างโปรเจกต์ + เอกสาร (2026-09-25)
@@ -47,7 +47,9 @@ Claude อ่านไฟล์นี้ตอนเริ่ม session แล�
   - เลือกสูตร ATR (ค่าเฉลี่ยธรรมดา หรือ Wilder) — warm-up ต่างกัน (0002)
 - [x] `backtest/metrics.py` + `tests/test_metrics.py` (14 test) — รวม `max_losing_streak`, `worst_day_pct` ที่ journal ใช้ (2026-10-04)
   - ข้อตกลง: ชนะ = pnl > 0, ไม่มีไม้ → 0 ทุกตัว, ไม่มีไม้แพ้ → profit factor = inf
-- [ ] `backtest/journal.py` — เขียน `docs/journal.jsonl` อัตโนมัติ
+- [x] `backtest/journal.py` — `git_info`, `append_entry` + test 10 ตัว (2026-10-04)
+  - inf → null ที่ขอบเขียนไฟล์, NaN → error ก่อนเปิดไฟล์, ไม่แก้ dict ที่รับเข้า
+  - test ใช้ repo ปลอมใน tmp_path — ไม่แตะ docs/journal.jsonl ตัวจริง
 - [ ] `scripts/run_backtest.py --split tune` รันจบ + มีบรรทัดใน journal
 
 ## ฉาก 3: ตรวจผล + walk-forward + kill switch
