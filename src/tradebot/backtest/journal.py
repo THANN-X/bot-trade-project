@@ -28,7 +28,12 @@ def git_info() -> dict:
 def append_entry(entry: dict, path: Path = JOURNAL_PATH) -> None:
     """เติม run_at (UTC) + git_info แล้วเขียนต่อท้ายไฟล์หนึ่งบรรทัด
 
-    TODO(ฉาก 2): เปิดไฟล์โหมด "a" และใช้ json.dumps(..., ensure_ascii=False)
+    กติกาค่าพิเศษ (docs/backtesting.md หัวข้อ 4):
+      - float("inf") → None (เขียนเป็น null) — profit_factor ที่ไม่มีไม้แพ้
+      - NaN → ต้อง error ไม่ใช่เขียนลงไฟล์ (แปลว่ามีบั๊กใน metrics)
+
+    TODO(ฉาก 2): เปิดไฟล์โหมด "a" และใช้
+                 json.dumps(..., ensure_ascii=False, allow_nan=False)
     """
     raise NotImplementedError
 
