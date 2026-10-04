@@ -4,15 +4,14 @@
 เรียงจากเก่าไปใหม่ ไม่มีแถวซ้ำ
 """
 
-
 import ccxt
 import pandas as pd
 
 COLUMNS = ["timestamp", "open", "high", "low", "close", "volume"]
 
+
 def fetch_ohlcv(exchange: str, symbol: str, timeframe: str, days: int) -> pd.DataFrame:
-    """ดึงข้อมูลย้อนหลัง `days` วัน
-    """
+    """ดึงข้อมูลย้อนหลัง `days` วัน"""
     ex = getattr(ccxt, exchange)()
     day_ms = 24 * 60 * 60 * 1000
     now = ex.milliseconds()

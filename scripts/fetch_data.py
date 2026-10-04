@@ -5,7 +5,6 @@
 load_config → fetch_ohlcv → save_csv → plot_price
 """
 
-
 from tradebot.config import PROJECT_ROOT, load_config
 from tradebot.data.fetcher import fetch_ohlcv
 from tradebot.data.storage import save_csv
@@ -13,9 +12,11 @@ from tradebot.viz.plot import plot_price
 
 
 def main() -> None:
-    config = load_config() # โหลด config จากไฟล์ config.yaml
-    market = config["market"] # ดึงข้อมูลตลาดจาก config
-    ohlcv_data = fetch_ohlcv(market["exchange"], market["symbol"], market["timeframe"], market["history_days"]) # ดึงข้อมูล OHLCV จาก exchange ตาม config
+    config = load_config()  # โหลด config จากไฟล์ config.yaml
+    market = config["market"]  # ดึงข้อมูลตลาดจาก config
+    ohlcv_data = fetch_ohlcv(
+        market["exchange"], market["symbol"], market["timeframe"], market["history_days"]
+    )  # ดึงข้อมูล OHLCV จาก exchange ตาม config
 
     # เปลี่ยนสัญลักษณ์ให้เหมาะสมกับชื่อไฟล์ (เช่น เปลี่ยน "/" เป็น "-")
     symbol_for_file = market["symbol"].replace("/", "-")
@@ -38,6 +39,7 @@ def main() -> None:
 
     print(f"OHLCV Data: {ohlcv_data.shape[0]} rows")
     print(f"Date Range: {ohlcv_data.index[0]} to {ohlcv_data.index[-1]}")
+
 
 if __name__ == "__main__":
     main()

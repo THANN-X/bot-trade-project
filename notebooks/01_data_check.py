@@ -45,15 +45,12 @@ def largest_gaps(df: pd.DataFrame, n: int = 5) -> pd.DataFrame:
     gap = (df["open"] - prev_close).abs()
     gap_pct = gap / prev_close
 
-    df = pd.DataFrame({
-        "prev_close": prev_close,
-        "open": df["open"],
-        "gap": gap,
-        "gap_pct": gap_pct
-    })
+    df = pd.DataFrame(
+        {"prev_close": prev_close, "open": df["open"], "gap": gap, "gap_pct": gap_pct}
+    )
 
     stats = df.nlargest(n, "gap_pct")
-    
+
     return stats
 
 
@@ -69,16 +66,20 @@ def range_stats(df: pd.DataFrame, n: int = 5) -> tuple[pd.DataFrame, pd.DataFram
     rng = df["high"] - df["low"]
     rng_pct = rng / df["open"]
     drop_from_open = df["open"] - df["low"]
-    df = pd.DataFrame({
-        "range": rng,
-        "range_pct": rng_pct,
-        "open": df["open"],
-        "high": df["high"],
-        "low": df["low"],
-        "drop_from_open": drop_from_open})
+    df = pd.DataFrame(
+        {
+            "range": rng,
+            "range_pct": rng_pct,
+            "open": df["open"],
+            "high": df["high"],
+            "low": df["low"],
+            "drop_from_open": drop_from_open,
+        }
+    )
     stats = df[["range", "range_pct", "drop_from_open"]].describe()
     largest_ranges = df.nlargest(n, "range_pct")
     return stats, largest_ranges
+
 
 # ── 4. ส่องช่วงราคากระโดด ~20 ส.ค. 2026 ───────────────────────────────────
 def zoom(df: pd.DataFrame, start: str, end: str) -> pd.DataFrame:
@@ -91,13 +92,9 @@ def zoom(df: pd.DataFrame, start: str, end: str) -> pd.DataFrame:
     """
 
     window = df.loc[start:end]  # เลือกช่วงเวลา
-    daily_df = window.resample("1D").agg({
-        "open": "first",
-        "high": "max",
-        "low": "min",
-        "close": "last",
-        "volume": "sum"
-    })
+    daily_df = window.resample("1D").agg(
+        {"open": "first", "high": "max", "low": "min", "close": "last", "volume": "sum"}
+    )
     daily_df["change_pct"] = daily_df["close"] / daily_df["open"] - 1
 
     return daily_df

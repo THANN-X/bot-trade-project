@@ -41,7 +41,6 @@ def ex1(raw: list[list]) -> pd.DataFrame:
     return df_sliced
 
 
-
 # ── ข้อ 2: เลือกคอลัมน์และแถว ─────────────────────────────────────────────
 def ex2(df: pd.DataFrame) -> tuple[pd.Series, pd.DataFrame]:
     """คืน (คอลัมน์ close ทั้งหมด, 5 แถวสุดท้ายเฉพาะคอลัมน์ open กับ close)
@@ -94,7 +93,7 @@ def ex5(df: pd.DataFrame) -> pd.Series:
     คิดดู: ค่า NaN ช่วงแรกมีกี่แถว เกี่ยวกับ warm-up ยังไง
     """
     sma_20 = df["close"].rolling(window=20).mean()
-    return sma_20   
+    return sma_20
 
 
 # ── ข้อ 6: shift — มองย้อนหลัง vs แอบดูอนาคต ─────────────────────────────
@@ -106,7 +105,7 @@ def ex6(df: pd.DataFrame) -> pd.Series:
     """
     close_shifted = df["close"].shift(1)
     gap = df["open"] - close_shifted
-    return gap  
+    return gap
 
 
 # ── ข้อ 7: resample — แท่ง 1h → 4h ────────────────────────────────────────
@@ -115,12 +114,9 @@ def ex7(df: pd.DataFrame) -> pd.DataFrame:
 
     คำใบ้: .resample("4h").agg({...: "first" / "max" / "min" / "last" / "sum"})
     """
-    return df.resample("4h").agg({
-        "open": "first",
-        "high": "max",
-        "low": "min",
-        "close": "last",
-        "volume": "sum"})   
+    return df.resample("4h").agg(
+        {"open": "first", "high": "max", "low": "min", "close": "last", "volume": "sum"}
+    )
 
 
 # ── ตัวตรวจ (ไม่ต้องแก้) ───────────────────────────────────────────────────
@@ -173,7 +169,10 @@ def main() -> None:
 
     gap = run("ข้อ 6", ex6, df)
     if gap is not None:
-        ok = pd.isna(gap.iloc[0]) and abs(gap.iloc[1] - (df["open"].iloc[1] - df["close"].iloc[0])) < 1e-9
+        ok = (
+            pd.isna(gap.iloc[0])
+            and abs(gap.iloc[1] - (df["open"].iloc[1] - df["close"].iloc[0])) < 1e-9
+        )
         print("ข้อ 6:", "ผ่าน" if ok else "ผิด", f"— gap ใหญ่สุด {gap.abs().max():.2f} USDT")
 
     df7 = run("ข้อ 7", ex7, df)

@@ -1,6 +1,5 @@
 """กราฟสำหรับดูข้อมูลและผล backtest"""
 
-
 import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.figure import Figure
@@ -15,6 +14,7 @@ def plot_price(df: pd.DataFrame) -> Figure:
     ax.set_ylabel("Price")
     fig.autofmt_xdate()
     return fig
+
 
 def plot_equity(equity_curve: pd.Series) -> None:
     """กราฟ equity + drawdown — TODO(ฉาก 2)"""
