@@ -4,7 +4,7 @@ Claude อ่านไฟล์นี้ตอนเริ่ม session แล�
 
 ## ตอนนี้อยู่: ฉาก 2 — backtest เอง (SMA 20/50)
 **ค้างไว้กลางทาง:** —
-**ครั้งถัดไป:** `scripts/run_backtest.py --split tune` — รอบแรกที่ลง journal (commit ก่อนรันให้ git_dirty = false) → ATR stop
+**ครั้งถัดไป:** วิเคราะห์ผลรอบแรก (ยังไม่ปรับพารามิเตอร์) → ตัดสินใจลำดับ: ATR stop / แยก exit_reason ใน journal / ฉาก 3
 
 ## ฉาก 0: ปูพื้น
 - [x] วางโครงสร้างโปรเจกต์ + เอกสาร (2026-09-25)
@@ -50,7 +50,9 @@ Claude อ่านไฟล์นี้ตอนเริ่ม session แล�
 - [x] `backtest/journal.py` — `git_info`, `append_entry` + test 10 ตัว (2026-10-04)
   - inf → null ที่ขอบเขียนไฟล์, NaN → error ก่อนเปิดไฟล์, ไม่แก้ dict ที่รับเข้า
   - test ใช้ repo ปลอมใน tmp_path — ไม่แตะ docs/journal.jsonl ตัวจริง
-- [ ] `scripts/run_backtest.py --split tune` รันจบ + มีบรรทัดใน journal
+- [x] `scripts/run_backtest.py --split tune` รันจบ + มีบรรทัดใน journal (2026-10-04, commit 971f019, clean)
+  - **ผลรอบแรก SMA 20/50, stop 2%: ขาดทุน −28.25%, expectancy −23.74/ไม้, PF 0.52, max DD 30.8%, win 27.7%, 119 ไม้**
+  - max DD 30.8% เกินเพดาน kill switch 15% — ถ้ารันจริงบอทจะหยุดถาวรกลางทาง
 
 ## ฉาก 3: ตรวจผล + walk-forward + kill switch
 - [ ] เทียบผลกับ backtesting.py
