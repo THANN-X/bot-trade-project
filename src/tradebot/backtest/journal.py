@@ -13,6 +13,8 @@ import subprocess
 from datetime import UTC, datetime
 from pathlib import Path
 
+import numpy as np
+
 from tradebot.config import PROJECT_ROOT
 
 JOURNAL_PATH = PROJECT_ROOT / "docs" / "journal.jsonl"
@@ -52,13 +54,17 @@ def git_info(repo: Path = PROJECT_ROOT) -> dict:
 
 
 def _json_safe(value):
-    """แปลงค่าที่ JSON มาตรฐานเขียนไม่ได้ — inf → None ทุกชั้นของ dict ที่ซ้อนกัน
+    """แปลงค่าที่ JSON มาตรฐานเขียนไม่ได้ ทุกชั้นของ dict ที่ซ้อนกัน
 
+    - ตัวเลขของ numpy (int64, float64, bool) → ตัวเลขของ Python (.item())
+    - inf → None
     เรียกตัวเองซ้ำ (recursion) กับค่าที่เป็น dict จึงจัดการ results ที่ซ้อนอยู่ข้างในได้
     NaN ไม่แปลง — ปล่อยให้ json.dumps(allow_nan=False) error เพราะ NaN แปลว่ามีบั๊ก
     """
     if isinstance(value, dict):
         return {key: _json_safe(item) for key, item in value.items()}
+    if isinstance(value, np.generic):
+        value = value.item()
     if isinstance(value, float) and math.isinf(value):
         return None
     return value

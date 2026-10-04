@@ -227,6 +227,7 @@ def test_8b_n_capped_counts_trimmed_trades():
     result = run_backtest(df, sigs(df, "B.."), config(stop_pct=0.001))
 
     assert result.n_capped == 1
+    assert type(result.n_capped) is int  # ไม่ใช่ numpy int64 — journal เขียนได้
     assert result.trades[0].size == pytest.approx(100.0)
 
 

@@ -7,6 +7,7 @@ entry = ราคาเข้าที่ได้จริง (หลังบ�
 sizing จึงไม่รับ slippage เข้ามา ไม่อย่างนั้นจะนับ slippage ซ้ำสองรอบ
 """
 
+import numpy as np
 import pytest
 
 from tradebot.backtest.costs import apply_slippage, fee
@@ -76,6 +77,15 @@ def test_costs_do_not_change_risk_based_size():
     size, capped = position_size(10_000, 0.01, 60_000, 59_000, fee_pct=FEE)
     assert size == pytest.approx(0.1)
     assert capped is False
+
+
+def test_returns_python_types_for_numpy_prices():
+    """engine ส่งราคาจาก DataFrame (numpy.float64) — ต้องได้ float / bool ของ Python ตาม type hint
+    ไม่อย่างนั้น n_capped กลายเป็น numpy int64 แล้ว journal เขียน JSON ไม่ได้ (เจอในรอบแรก)
+    """
+    size, capped = position_size(10_000, 0.01, np.float64(84_610), np.float64(84_310))
+    assert type(size) is float
+    assert type(capped) is bool
 
 
 def test_stop_equal_to_entry_is_rejected():

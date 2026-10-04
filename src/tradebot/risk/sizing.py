@@ -37,4 +37,6 @@ def position_size(
     size = min(coin_amount, max_coin_amount)
     capped = coin_amount > max_coin_amount
 
-    return size, capped
+    # ราคาจาก DataFrame เป็น numpy.float64 → ผลเปรียบเทียบเป็น numpy bool
+    # แปลงเป็นชนิดของ Python ให้ตรงกับ type hint (n_capped จะได้เป็น int ไม่ใช่ numpy int64)
+    return float(size), bool(capped)

@@ -15,6 +15,7 @@ import math
 import subprocess
 from datetime import UTC, datetime
 
+import numpy as np
 import pytest
 
 from tradebot.backtest.journal import append_entry, git_info
@@ -96,6 +97,24 @@ def test_infinite_profit_factor_becomes_null(tmp_path):
     results = read_lines(path)[0]["results"]
     assert results["profit_factor"] is None
     assert results["n_trades"] == 5
+
+
+def test_numpy_numbers_are_written_as_plain_numbers(tmp_path):
+    """ค่าจาก pandas เป็น numpy (int64, float64, bool) — json เขียนตรง ๆ ไม่ได้ ต้องแปลงก่อน
+    (รอบแรกจริงพังด้วย "int64 is not JSON serializable")
+    """
+    path = tmp_path / "journal.jsonl"
+    results = {"n_capped": np.int64(3), "net_profit": np.float64(12.5), "flag": np.bool_(True)}
+
+    append_entry({"results": results}, path)
+
+    assert read_lines(path)[0]["results"] == {"n_capped": 3, "net_profit": 12.5, "flag": True}
+
+
+def test_numpy_nan_is_still_rejected(tmp_path):
+    """แปลง numpy แล้ว NaN ต้องยังถูกจับ ไม่หลุดลงไฟล์"""
+    with pytest.raises(ValueError):
+        append_entry({"results": {"expectancy": np.float64("nan")}}, tmp_path / "journal.jsonl")
 
 
 def test_nan_is_rejected_and_nothing_is_written(tmp_path):
