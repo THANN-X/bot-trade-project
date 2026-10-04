@@ -4,7 +4,7 @@ Claude อ่านไฟล์นี้ตอนเริ่ม session แล�
 
 ## ตอนนี้อยู่: ฉาก 2 — backtest เอง (SMA 20/50)
 **ค้างไว้กลางทาง:** —
-**ครั้งถัดไป:** `backtest/metrics.py` + `tests/test_metrics.py` → journal → run_backtest.py (รอบแรกบนช่วงจูน) → ATR stop
+**ครั้งถัดไป:** `backtest/journal.py` (ตัดสินใจก่อน: profit factor = inf จะเขียนลง JSON ยังไง) → run_backtest.py (รอบแรกบนช่วงจูน) → ATR stop
 
 ## ฉาก 0: ปูพื้น
 - [x] วางโครงสร้างโปรเจกต์ + เอกสาร (2026-09-25)
@@ -45,7 +45,8 @@ Claude อ่านไฟล์นี้ตอนเริ่ม session แล�
 - [ ] ขั้นที่สอง: stop แบบ ATR (`stop_method: atr`) — หลัง engine เขียวครบ
   - ATR ของแท่งสัญญาณ i ไม่ใช่แท่งเข้า i+1 + test look-ahead ของ ATR + test ใน test_stops
   - เลือกสูตร ATR (ค่าเฉลี่ยธรรมดา หรือ Wilder) — warm-up ต่างกัน (0002)
-- [ ] `backtest/metrics.py` + `tests/test_metrics.py`
+- [x] `backtest/metrics.py` + `tests/test_metrics.py` (14 test) — รวม `max_losing_streak`, `worst_day_pct` ที่ journal ใช้ (2026-10-04)
+  - ข้อตกลง: ชนะ = pnl > 0, ไม่มีไม้ → 0 ทุกตัว, ไม่มีไม้แพ้ → profit factor = inf
 - [ ] `backtest/journal.py` — เขียน `docs/journal.jsonl` อัตโนมัติ
 - [ ] `scripts/run_backtest.py --split tune` รันจบ + มีบรรทัดใน journal
 
@@ -53,7 +54,6 @@ Claude อ่านไฟล์นี้ตอนเริ่ม session แล�
 - [ ] เทียบผลกับ backtesting.py
 - [ ] walk-forward บนช่วงจูน/ทดสอบ
 - [ ] stress test: รันซ้ำด้วย slippage 0.2% — ยังต้องกำไร (backtesting.md §2)
-- [ ] `max_losing_streak`, `worst_day_pct`
 - [ ] เลือกตัวเลข kill switch จากช่วงจูน ใส่ `config/default.yaml`
 - [ ] `risk/kill_switch.py`
 - [ ] กัน holdout ใน `run_backtest.py` ด้วย `journal.count_runs`
