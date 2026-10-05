@@ -55,15 +55,40 @@ def main() -> None:
     sys.stdout.reconfigure(encoding="utf-8")
     warnings.filterwarnings("ignore")
 
-    config = copy.deepcopy(load_config())
-    config["costs"]["fee_pct"] = 0.0
-    config["costs"]["slippage_pct"] = 0.0
-    risk = config["risk"]
-
-    df_full = load_csv(raw_csv_path(config["market"]))
-    signals_full = SmaCross(**config["strategy"]["params"]).generate_signals(df_full)
-    part = split_slices(len(df_full), config["splits"])["tune"]
+    base = load_config()
+    df_full = load_csv(raw_csv_path(base["market"]))
+    signals_full = SmaCross(**base["strategy"]["params"]).generate_signals(df_full)
+    part = split_slices(len(df_full), base["splits"])["tune"]
     df, signals = df_full.iloc[part], signals_full.iloc[part]
+    print(f"ช่วงจูน {df.index[0]} → {df.index[-1]} ({len(df)} แท่ง)\n")
+
+    fee_pct, slippage_pct = base["costs"]["fee_pct"], base["costs"]["slippage_pct"]
+    compare("ก. ปิดค่าใช้จ่าย — ต้องตรงทุกไม้", base, df, signals, 0.0, 0.0, 0.0, exact=True)
+    compare("ข. fee อย่างเดียว — ต้องตรงทุกไม้", base, df, signals, fee_pct, 0.0, 0.0, exact=True)
+    compare(
+        f"ค. slippage {slippage_pct:.2%}/ข้าง เทียบ spread {2 * slippage_pct:.2%} ขาเข้า"
+        " — โมเดลต่างกัน คาดว่าใกล้แต่ไม่ตรง",
+        base,
+        df,
+        signals,
+        fee_pct,
+        slippage_pct,
+        2 * slippage_pct,
+        exact=False,
+    )
+
+
+def compare(label, base, df, signals, fee_pct, slippage_pct, bt_spread, exact) -> None:
+    """รัน engine ของเรากับ backtesting.py ด้วยค่าใช้จ่ายชุดเดียวกัน แล้วพิมพ์ผลเทียบ
+
+    backtesting.py คิด spread ครั้งเดียวที่ขาเข้า ส่วนของเราคิด slippage ทั้งสองขา
+    (backtesting.py บรรทัด "Existing trades are closed at unadjusted price")
+    → slippage เทียบได้แค่ "ใกล้กัน" ส่วน fee อย่างเดียวคิดจากราคาดิบเหมือนกันทั้งสองฝั่ง จึงต้องตรงเป๊ะ
+    """
+    config = copy.deepcopy(base)
+    config["costs"]["fee_pct"] = fee_pct
+    config["costs"]["slippage_pct"] = slippage_pct
+    risk = config["risk"]
 
     # ── engine ของเรา ──
     ours = run_backtest(df, signals, config)
@@ -83,29 +108,37 @@ def main() -> None:
             if sig[i] == Signal.SELL and self.position:
                 self.position.close()
             elif sig[i] == Signal.BUY and not self.position:
-                fill = float(opens[i + 1])  # ราคาเข้าจริง (ข้อ 4)
+                fill = float(opens[i + 1]) * (1 + bt_spread)  # ราคาเข้าที่ backtesting.py จะได้
                 stop = stop_price(fill, risk)
-                units, _ = position_size(self.equity, risk["risk_per_trade_pct"], fill, stop)
+                units, _ = position_size(
+                    self.equity, risk["risk_per_trade_pct"], fill, stop, fee_pct=fee_pct
+                )
                 self.buy(size=math.floor(units / SCALE), sl=stop * SCALE)
 
     bt = Backtest(
         to_backtesting_frame(df),
         Replay,
         cash=risk["initial_capital"],
-        commission=0,
+        commission=fee_pct,
+        spread=bt_spread,
         finalize_trades=True,
     )
     stats = bt.run()
     theirs = stats._trades
 
     # ── เทียบ ──
-    print(f"ช่วงจูน {df.index[0]} → {df.index[-1]} ({len(df)} แท่ง) ปิดค่าใช้จ่าย\n")
+    print(f"━━━ {label}")
     print(f"{'':24}{'ของเรา':>14}{'backtesting.py':>16}")
     print(f"{'จำนวนไม้':<24}{len(ours.trades):>14}{len(theirs):>16}")
     our_final = ours.equity_curve.iloc[-1]
     their_final = stats["Equity Final [$]"]
     print(f"{'equity สุดท้าย':<24}{our_final:>14,.2f}{their_final:>16,.2f}")
     print(f"{'ต่างกัน':<24}{our_final - their_final:>14,.4f}")
+    if not exact:
+        print(
+            f"{'ต่างกัน (% ของทุน)':<24}{(our_final - their_final) / risk['initial_capital']:>14.3%}\n"
+        )
+        return
 
     n = min(len(ours.trades), len(theirs))
     mismatches = []
@@ -124,7 +157,7 @@ def main() -> None:
         )
 
     pnl_diff = max(abs(o.pnl - theirs.iloc[k]["PnL"]) for k, o in enumerate(ours.trades[:n]))
-    print(f"pnl ต่อไม้ต่างกันมากสุด: {pnl_diff:.6f} USDT (ขนาดปัดเป็น satoshi)")
+    print(f"pnl ต่อไม้ต่างกันมากสุด: {pnl_diff:.6f} USDT (ขนาดปัดเป็น satoshi)\n")
 
 
 if __name__ == "__main__":
