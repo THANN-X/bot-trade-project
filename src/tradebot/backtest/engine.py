@@ -75,12 +75,18 @@ def close_position(
     return trade, proceeds
 
 
-def run_backtest(df: pd.DataFrame, signals: pd.Series, config: dict) -> BacktestResult:
+def run_backtest(
+    df: pd.DataFrame, signals: pd.Series, config: dict, atr: pd.Series | None = None
+) -> BacktestResult:
     """จำลองการเทรดบน df (ช่วงเดียว เริ่มพอร์ตว่าง) ด้วยสัญญาณที่คำนวณไว้แล้ว
     df      — OHLCV ช่วงที่ต้องการ (index เวลา UTC)
     signals — Series ของ Signal index เดียวกับ df
     config  — ใช้ config["costs"] และ config["risk"]
+    atr     — ATR ที่คำนวณจากข้อมูลเต็มแล้วตัดช่วง (index เดียวกับ df) จำเป็นเมื่อ stop_method = atr
+              ใช้ค่าของแท่งสัญญาณ i ไม่ใช่แท่งเข้า i+1 (หัวข้อ 6)
     """
+    if config["risk"]["stop_method"] == "atr" and atr is None:
+        raise ValueError("stop_method = atr ต้องส่ง atr เข้ามา (คำนวณจากข้อมูลเต็มก่อนตัดช่วง)")
     cash = config["risk"]["initial_capital"]  # เงินสดเริ่มต้น
     pos: dict | None = (
         None  # None = ไม่ถือ, dict = ถืออยู่ {"entry_time", "entry_price", "size", "stop"}
@@ -113,7 +119,9 @@ def run_backtest(df: pd.DataFrame, signals: pd.Series, config: dict) -> Backtest
 
             elif prev_signal == Signal.BUY and pos is None:
                 buy_price = apply_slippage(bar["open"], "buy", slippage)
-                stop = stop_price(buy_price, config["risk"])
+                # ATR ของแท่งสัญญาณ i−1 (ปิดแล้ว) — แท่งนี้ยังไม่ปิด ใช้ไม่ได้ (look-ahead)
+                atr_at_signal = None if atr is None else float(atr.iloc[i - 1])
+                stop = stop_price(buy_price, config["risk"], atr=atr_at_signal)
                 # buy_price บวก slippage แล้ว → sizing รับแค่ fee (ไม่นับ slippage ซ้ำ)
                 size, capped = position_size(
                     cash, config["risk"]["risk_per_trade_pct"], buy_price, stop, fee_pct=fee_pct

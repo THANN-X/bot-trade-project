@@ -30,7 +30,7 @@ risk:
   # ราคา stop — risk/stops.py, docs/backtesting.md หัวข้อ 6 "ราคา stop"
   stop_method: pct           # pct | atr
   stop_pct: 0.02             # pct: stop ต่ำกว่าราคาเข้าที่ได้จริง 2% — จุดเริ่มต้น จูนในฉาก 3
-  atr_period: 14             # atr: ยังไม่ทำ (ขั้นที่สองของฉาก 2)
+  atr_period: 14             # atr: ATR ค่าเฉลี่ยธรรมดา 14 แท่ง (warm-up 15 แท่ง)
   atr_mult: 2                # atr: stop = ราคาเข้า − atr_mult × ATR ของแท่งสัญญาณ
 
 # ดู docs/decisions/0001-kill-switch-from-backtest.md

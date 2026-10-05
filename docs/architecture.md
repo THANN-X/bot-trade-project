@@ -7,7 +7,8 @@ config/default.yaml    ตัวเลขทุกตัว (symbol, ค่า�
 src/tradebot/
   config.py            โหลด yaml + .env
   data/                ดึงข้อมูล (ccxt) และอ่าน/เขียน CSV
-  strategies/          คำนวณ indicator และสัญญาณ — โค้ดบริสุทธิ์ ห้าม I/O
+  indicators/          ตัวชี้วัดที่ใช้ร่วมกัน (เช่น ATR) — โค้ดบริสุทธิ์ ห้าม I/O, คำนวณจากข้อมูลเต็มก่อนตัดช่วง
+  strategies/          คำนวณสัญญาณ — โค้ดบริสุทธิ์ ห้าม I/O (import indicators/ ได้)
   risk/                ขนาดไม้ + kill switch — ตัดสินว่าทำตามสัญญาณได้ไหม เท่าไหร่
   backtest/            engine, ค่าใช้จ่าย, metrics, journal
   viz/                 กราฟ
@@ -38,7 +39,8 @@ docs/                  เอกสาร + journal.jsonl
    data/ (CSV)                   exchange (ccxt)
 ```
 
-- `strategies/` import ได้แค่ pandas/numpy และ `strategies/base.py` — **ห้าม** import `data`, `backtest`, `live`, ccxt, หรืออ่านไฟล์/เวลาปัจจุบัน
+- `strategies/` import ได้แค่ pandas/numpy, `strategies/base.py` และ `indicators/` — **ห้าม** import `data`, `backtest`, `live`, ccxt, หรืออ่านไฟล์/เวลาปัจจุบัน
+- `indicators/` บริสุทธิ์ที่สุด: import ได้แค่ pandas/numpy — ไม่รู้จักแม้แต่ strategy หรือ risk
 - `risk/` ก็บริสุทธิ์เช่นกัน: รับตัวเลขเข้า คืนการตัดสินใจออก
 - `backtest/` กับ `live/` เป็นคนป้อนข้อมูลให้ strategy และเอาสัญญาณไปทำต่อ
 

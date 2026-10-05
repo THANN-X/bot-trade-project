@@ -42,9 +42,10 @@ Claude อ่านไฟล์นี้ตอนเริ่ม session แล�
   - ยังไม่เคยรันกับข้อมูลจริง — รอบแรกต้องผ่าน run_backtest.py ให้ลง journal
   - รับ `signals` แทน `strategy` (สัญญาณคำนวณจากข้อมูลเต็มก่อนตัดช่วง)
   - `Trade.exit_reason`: "signal" | "stop" | "end"
-- [ ] ขั้นที่สอง: stop แบบ ATR (`stop_method: atr`) — หลัง engine เขียวครบ
-  - ATR ของแท่งสัญญาณ i ไม่ใช่แท่งเข้า i+1 + test look-ahead ของ ATR + test ใน test_stops
-  - เลือกสูตร ATR (ค่าเฉลี่ยธรรมดา หรือ Wilder) — warm-up ต่างกัน (0002)
+- [x] ขั้นที่สอง: stop แบบ ATR (`stop_method: atr`) (2026-10-05)
+  - ATR ค่าเฉลี่ยธรรมดา 14 แท่ง (warm-up 15) — ต่างจาก TradingView (Wilder) เล็กน้อย
+  - ใช้ ATR ของแท่งสัญญาณ i, คำนวณจากข้อมูลเต็มก่อนตัดช่วง, test look-ahead ผ่าน
+  - โฟลเดอร์ใหม่ `indicators/` (โค้ดบริสุทธิ์)
 - [x] `backtest/metrics.py` + `tests/test_metrics.py` (14 test) — รวม `max_losing_streak`, `worst_day_pct` ที่ journal ใช้ (2026-10-04)
   - ข้อตกลง: ชนะ = pnl > 0, ไม่มีไม้ → 0 ทุกตัว, ไม่มีไม้แพ้ → profit factor = inf
 - [x] `backtest/journal.py` — `git_info`, `append_entry` + test 10 ตัว (2026-10-04)

@@ -23,9 +23,25 @@ from tradebot.backtest.journal import append_entry
 from tradebot.backtest.splits import SPLIT_ORDER, split_slices
 from tradebot.config import load_config
 from tradebot.data.storage import load_csv, raw_csv_path
+from tradebot.indicators.atr import atr
 from tradebot.strategies.sma_cross import SmaCross
 
 STRATEGIES = {"sma_cross": SmaCross}
+
+
+def stop_settings(risk: dict) -> dict:
+    """ค่าใน config["risk"] ที่เปลี่ยนผลได้ — บันทึกเฉพาะของวิธี stop ที่ใช้จริง
+    (บันทึกค่าของวิธีที่ไม่ได้ใช้ จะทำให้อ่าน journal แล้วเข้าใจผิดว่ารอบนั้นใช้ค่านั้น)
+    """
+    settings = {
+        "risk_per_trade_pct": risk["risk_per_trade_pct"],
+        "stop_method": risk["stop_method"],
+    }
+    if risk["stop_method"] == "atr":
+        settings |= {"atr_period": risk["atr_period"], "atr_mult": risk["atr_mult"]}
+    else:
+        settings["stop_pct"] = risk["stop_pct"]
+    return settings
 
 
 def parse_args() -> argparse.Namespace:
@@ -48,11 +64,14 @@ def main() -> None:
 
     df = load_csv(raw_csv_path(market))
     signals = strategy.generate_signals(df)  # ข้อมูลเต็มก่อนตัด (หัวข้อ 3)
+    # ATR ก็เป็น indicator — คำนวณจากข้อมูลเต็มก่อนตัด ไม่อย่างนั้นต้นช่วงจะเป็น NaN 15 แท่ง
+    atr_full = atr(df, risk["atr_period"]) if risk["stop_method"] == "atr" else None
 
     part = split_slices(len(df), config["splits"])[args.split]
     df_split, signals_split = df.iloc[part], signals.iloc[part]
+    atr_split = None if atr_full is None else atr_full.iloc[part]
 
-    result = run_backtest(df_split, signals_split, config)
+    result = run_backtest(df_split, signals_split, config, atr=atr_split)
     trades, equity = result.trades, result.equity_curve
 
     results = {
@@ -83,11 +102,7 @@ def main() -> None:
         },
         "split": args.split,
         "costs": {"fee_pct": costs["fee_pct"], "slippage_pct": costs["slippage_pct"]},
-        "risk": {
-            "risk_per_trade_pct": risk["risk_per_trade_pct"],
-            "stop_method": risk["stop_method"],
-            "stop_pct": risk["stop_pct"],
-        },
+        "risk": stop_settings(risk),
         "results": results,
         "benchmark": {"buy_and_hold": benchmark},
     }

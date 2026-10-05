@@ -31,14 +31,18 @@ def sigs(df: pd.DataFrame, codes: str) -> pd.Series:
     return pd.Series([SIGNAL_CODES[c] for c in codes], index=df.index)
 
 
-def config(slippage: float = 0.0, fee: float = 0.0, stop_pct: float = 0.02) -> dict:
+def config(
+    slippage: float = 0.0, fee: float = 0.0, stop_pct: float = 0.02, stop_method: str = "pct"
+) -> dict:
     return {
         "costs": {"fee_pct": fee, "slippage_pct": slippage},
         "risk": {
             "risk_per_trade_pct": 0.01,
             "initial_capital": CAPITAL,
-            "stop_method": "pct",
+            "stop_method": stop_method,
             "stop_pct": stop_pct,
+            "atr_period": 14,
+            "atr_mult": 2,
         },
     }
 
@@ -248,3 +252,50 @@ def test_8c_capped_buy_with_costs_spends_all_cash():
     spent = trade.size * trade.entry_price * (1 + 0.001)
     assert result.n_capped == 1
     assert spent == pytest.approx(CAPITAL)
+
+
+# ── 9. stop แบบ ATR — ใช้ ATR ของแท่งสัญญาณ i ไม่ใช่แท่งเข้า i+1 (หัวข้อ 6) ────
+def test_9_atr_stop_uses_signal_bar():
+    """ATR ของแท่ง 0 (สัญญาณ) = 2 → stop = 100 − 2 × 2 = 96, ขนาด = 100 ÷ 4 = 25
+    ถ้าเผลอใช้ ATR ของแท่ง 1 (แท่งเข้า = 10) จะได้ stop 80 ขนาด 5 — ซึ่งเป็น look-ahead
+    เพราะ ATR ของแท่ง 1 ใช้ high/low/close ของแท่งนั้น ตอนส่งคำสั่งที่ open ยังไม่รู้
+    """
+    df = bars(
+        (99.0, 100.0, 98.5, 99.5),  # 0: BUY, ATR = 2
+        (100.0, 101.0, 99.0, 100.5),  # 1: เข้า 100, ATR = 10
+        (100.5, 101.0, 100.0, 101.0),
+    )
+    atr_values = pd.Series([2.0, 10.0, 10.0], index=df.index)
+
+    result = run_backtest(df, sigs(df, "B.."), config(stop_method="atr"), atr=atr_values)
+
+    trade = result.trades[0]
+    assert trade.size == pytest.approx(25.0)
+
+
+def test_9b_atr_stop_hits_at_atr_distance():
+    """stop 96 จาก ATR ของแท่งสัญญาณ → low 95.5 ของแท่ง 2 แตะ → ออกที่ 96"""
+    df = bars(
+        (99.0, 100.0, 98.5, 99.5),  # 0: BUY, ATR = 2
+        (100.0, 101.0, 99.0, 100.5),  # 1: เข้า 100, stop 96
+        (99.0, 99.5, 95.5, 96.5),  # 2: low 95.5 ≤ 96 → stop
+        (96.5, 97.0, 96.0, 96.5),
+    )
+    atr_values = pd.Series([2.0, 10.0, 10.0, 10.0], index=df.index)
+
+    result = run_backtest(df, sigs(df, "B..."), config(stop_method="atr"), atr=atr_values)
+
+    trade = result.trades[0]
+    assert trade.exit_reason == "stop"
+    assert trade.exit_price == pytest.approx(96.0)
+
+
+def test_9c_atr_method_without_atr_is_rejected():
+    """stop_method = atr แต่ไม่ได้ส่ง ATR เข้ามา → error ไม่ใช่เงียบ ๆ แล้วไม่มี stop"""
+    df = bars(
+        (99.0, 100.0, 98.5, 99.5),
+        (100.0, 101.0, 99.0, 100.5),
+        (100.5, 101.0, 100.0, 101.0),
+    )
+    with pytest.raises(ValueError):
+        run_backtest(df, sigs(df, "B.."), config(stop_method="atr"))
