@@ -31,7 +31,7 @@ risk:
   stop_method: atr           # pct | atr
   stop_pct: 0.02             # pct: stop ต่ำกว่าราคาเข้าที่ได้จริง 2% — จุดเริ่มต้น จูนในฉาก 3
   atr_period: 14             # atr: ATR ค่าเฉลี่ยธรรมดา 14 แท่ง (warm-up 15 แท่ง)
-  atr_mult: 3.4              # atr: stop = ราคาเข้า − atr_mult × ATR ของแท่งสัญญาณ
+  atr_mult: 5                # atr: stop = ราคาเข้า − atr_mult × ATR ของแท่งสัญญาณ
 
 # ดู docs/decisions/0001-kill-switch-from-backtest.md
 kill_switch:
